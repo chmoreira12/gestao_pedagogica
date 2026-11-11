@@ -1,7 +1,7 @@
 # Progresso do Projeto — Sistema de Gestão Pedagógica
 
-**Última atualização:** 10/11/2026
-**Fase atual:** Estrutura inicial do backend validada localmente; versionamento pendente
+**Última atualização:** 11/11/2026
+**Fase atual:** Infraestrutura PostgreSQL local validada; integração do academico-service pendente
 **Status geral:** Em desenvolvimento
 
 ## 1. Objetivo
@@ -17,7 +17,7 @@ O projeto tem como objetivo consolidar conhecimentos de desenvolvimento backend,
 - [x] ADR-003 — Integração assíncrona utilizando Apache Kafka.
 - [x] ADR-004 — Arquitetura interna tradicional em camadas.
 
-As quatro ADRs estão aprovadas na documentação. Isso não representa implementação dos dois serviços, dos bancos, da mensageria ou das camadas de negócio.
+As quatro ADRs estão aprovadas na documentação. A infraestrutura local dos bancos prevista na ADR-002 foi implementada e validada. A integração dos serviços com os bancos, a mensageria e as camadas de negócio permanecem pendentes.
 
 ## 3. Tecnologias definidas
 
@@ -43,11 +43,12 @@ As tecnologias serão introduzidas conforme as necessidades de implementação.
 O repositório reúne documentação e uma aplicação independente:
 
 - `services/academico-service`: estrutura inicial existente, sem funcionalidades acadêmicas.
+- `infra/`: Docker Compose PostgreSQL, exemplo de variáveis de ambiente, script de inicialização dos bancos e README de operação local.
 - `docs/requisitos.md`: requisitos funcionais documentados.
 - `docs/decisoes/`: ADRs 001 a 004 existentes e aprovadas.
 - Arquivos da raiz: `README.md`, `AGENTS.md`, `PROGRESSO.md` e `.gitignore`.
 
-Não existem `services/identidade-service`, `infra` ou `frontend`. Identidade e infraestrutura estão planejadas; frontend está fora do escopo da V1. Não existem `ROADMAP.md` ou `docs/arquitetura.md`.
+Não existem `services/identidade-service` ou `frontend`. O serviço de identidade está planejado; frontend está fora do escopo da V1. Não existem `ROADMAP.md` ou `docs/arquitetura.md`.
 
 ## 5. Atividades concluídas
 
@@ -85,9 +86,18 @@ Esses registros não são critérios de conclusão da implementação.
 - [x] Auditoria local da estrutura, dependências, configuração e teste básico do serviço em 10/11/2026.
 - [ ] Commit e push da estrutura inicial do microsserviço.
 
+### Infraestrutura PostgreSQL local
+
+- [x] Criação da pasta `infra/` e dos arquivos `compose.yml`, `.env.example`, `postgres/init/01-create-databases.sh` e `README.md`.
+- [x] Configuração de uma instância PostgreSQL `18.6`, com imagem `postgres:18.6-trixie`, porta local `5434`, volume nomeado e healthcheck.
+- [x] Criação de `academico_db` com usuário próprio `academico_user` e de `identidade_db` com usuário próprio `identidade_user`.
+- [x] Validação das conexões autorizadas e do isolamento entre os bancos.
+- [x] Confirmação do estado saudável do container PostgreSQL.
+- [x] Configuração das credenciais locais em `infra/.env`, protegido pelas regras do `.gitignore`. O arquivo `.env.example` contém somente comentários e valores vazios.
+
 ## 6. Estado atual e evidências da auditoria
 
-A validação local da estrutura inicial está concluída. O fechamento dessa etapa permanece em andamento exclusivamente quanto à revisão final e ao versionamento autorizado: `git status` mostra `services/` ainda não rastreado. Nenhum commit ou push foi executado nesta auditoria.
+A validação local da estrutura inicial está concluída. Na auditoria inicial, `services/` ainda não estava rastreado e nenhum commit ou push foi executado naquela tarefa. Esse registro é histórico. A infraestrutura PostgreSQL local também foi validada, conforme os resultados informados pelo desenvolvedor e registrados abaixo.
 
 ### Estrutura e dependências verificadas
 
@@ -138,11 +148,30 @@ A primeira tentativa no sandbox terminou antes de executar testes por bloqueio d
 | Erros | 0 |
 | Ignorados | 0 |
 
+### Validação da infraestrutura PostgreSQL local — registro em 11/11/2026
+
+Os resultados de execução abaixo foram informados pelo desenvolvedor. Não houve nova execução de testes ou gerenciamento de containers nesta atualização documental.
+
+| Verificação | Resultado |
+| --- | --- |
+| PostgreSQL no Docker Compose | `18.6`, imagem `postgres:18.6-trixie` |
+| Endereço local | `127.0.0.1:5434` |
+| Persistência | Volume nomeado `gestao-pedagogica-local_postgres_data` |
+| Banco acadêmico | `academico_db`, proprietário `academico_user` |
+| Banco de identidade | `identidade_db`, proprietário `identidade_user` |
+| Conexões autorizadas | Testes passaram |
+| Isolamento entre os bancos | Testes passaram |
+| Estado do container PostgreSQL | Saudável |
+| Credenciais locais | Em `infra/.env`, ignorado pelo Git |
+| Integração do academico-service com PostgreSQL | Ainda não implementada |
+
+Em um volume novo, o entrypoint da imagem executa `infra/postgres/init/01-create-databases.sh`, criando os bancos e seus usuários. O volume preserva os dados nas inicializações seguintes. A revisão dos quatro arquivos de infraestrutura confirmou a consistência dos nomes e comandos e a ausência de credenciais reais no `.env.example`.
+
 ### Pendências e limitações identificadas
 
 - Investigar avisos Maven HTTP 401 ao consultar metadados dos repositórios `flyway-community-db-support` e `MavenFeed`. Não impediram o build; a origem da configuração desses repositórios não foi determinada nesta auditoria.
 - Avaliar os avisos de autoanexação do Mockito/Byte Buddy e carregamento dinâmico de agente no JDK utilizado. Não houve falha de teste.
-- Validar futuramente a inicialização normal com PostgreSQL, migrações e testes de integração. Não existem testes de negócio ou integração nesta etapa.
+- Implementar a integração do `academico-service` com o PostgreSQL e validar a inicialização da aplicação com banco, migrações e testes de integração. Não existem testes de negócio ou integração da aplicação nesta etapa.
 - Atualizar futuramente o estado descrito no README da raiz: ainda informa planejamento arquitetural, embora a estrutura inicial do serviço já exista. O README não foi modificado nesta tarefa.
 - Revisar e versionar as alterações apenas mediante autorização. Já havia alterações em `AGENTS.md` e `PROGRESSO.md`, além de `services/` não rastreado, no início desta auditoria; foram preservadas.
 
@@ -156,15 +185,14 @@ A primeira tentativa no sandbox terminou antes de executar testes por bloqueio d
 
 ### Implementação ainda não iniciada
 
-- [ ] Preparar PostgreSQL e Docker Compose com bancos lógicos e credenciais separados, conforme ADR-002.
-- [ ] Configurar a execução com banco e criar as primeiras migrações Flyway conforme a modelagem necessária.
+- [ ] Integrar o `academico-service` ao PostgreSQL local, configurar a execução com banco e criar as primeiras migrações Flyway conforme a modelagem necessária.
 - [ ] Definir e implementar a primeira funcionalidade acadêmica com testes automatizados, respeitando os requisitos e a ADR-004.
 - [ ] Criar o `identidade-service` e implementar contas, autenticação e autorização.
 - [ ] Detalhar os pontos pendentes da ADR-003 e implementar Kafka, Transactional Outbox, idempotência e tratamento de falhas.
 - [ ] Implementar as demais funcionalidades V1: cadastros, cursos, turmas, matrículas, auditoria, consultas e relatórios, conforme detalhamento dos requisitos.
 - [ ] Preparar a implantação com Kubernetes e detalhar a hospedagem do PostgreSQL.
 
-Nenhum requisito funcional RF-001 a RF-035 possui implementação de negócio evidenciada no código atual. O evento `CoordenadorCadastrado`, os bancos independentes e a integração HTTP/Kafka estão documentados, mas não implementados. V2 e V3 permanecem planejadas, fora da implementação inicial.
+Nenhum requisito funcional RF-001 a RF-035 possui implementação de negócio evidenciada no código atual. Os bancos independentes estão criados e validados na infraestrutura local. A integração do `academico-service` com o PostgreSQL, o evento `CoordenadorCadastrado` e a integração HTTP/Kafka permanecem pendentes. V2 e V3 permanecem planejadas, fora da implementação inicial.
 
 A ordem das atividades poderá ser ajustada conforme as dependências técnicas; não há evidência de implementação dessas próximas atividades em andamento.
 
