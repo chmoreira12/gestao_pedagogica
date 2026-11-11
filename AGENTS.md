@@ -127,3 +127,24 @@ As instruções específicas de cada microsserviço estarão em seus respectivos
 Este projeto deve ser desenvolvido com padrões profissionais de mercado, priorizando qualidade, clareza arquitetural, confiabilidade e evolução sustentável.
 
 O objetivo não é produzir código artificialmente simplificado para fins didáticos, mas construir uma aplicação real, compreendendo as decisões técnicas durante seu desenvolvimento.
+
+## Acompanhamento do desenvolvimento
+
+O arquivo `PROGRESSO.md`, localizado na raiz do repositório, é a referência para acompanhar o estado atual do projeto.
+
+Antes de iniciar qualquer tarefa, consulte:
+
+1. `AGENTS.md` — instruções gerais de desenvolvimento.
+2. `PROGRESSO.md` — estado atual e próximas atividades.
+3. `docs/requisitos.md` — requisitos e regras de negócio aplicáveis.
+4. `docs/decisoes/` — decisões arquiteturais relevantes.
+
+Durante o desenvolvimento:
+
+- Consulte o progresso antes de propor ou implementar alterações.
+- Execute somente a tarefa solicitada.
+- Não considere uma atividade concluída sem verificar seus critérios de aceitação.
+- Ao finalizar uma tarefa, informe quais itens do `PROGRESSO.md` precisam ser atualizados.
+- Não altere o `PROGRESSO.md` automaticamente sem autorização.
+- Não execute commits ou pushes sem autorização explícita.
+- Preserve as decisões arquiteturais existentes e informe quando identificar conflitos ou necessidade de revisão.
