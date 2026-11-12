@@ -1,3 +1,16 @@
 spring:
   application:
     name: academico-service
+
+  datasource:
+    url: ${ACADEMICO_DB_URL:jdbc:postgresql://127.0.0.1:5434/academico_db}
+    username: ${ACADEMICO_DB_USERNAME}
+    password: ${ACADEMICO_DB_PASSWORD}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
