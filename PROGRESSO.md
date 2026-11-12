@@ -1,7 +1,7 @@
 # Progresso do Projeto — Sistema de Gestão Pedagógica
 
-**Última atualização:** 11/11/2026
-**Fase atual:** Primeira migração Flyway aplicada e validada; versionamento da entrega pendente
+**Última atualização:** 12/11/2026
+**Fase atual:** Entidade JPA Coordenador implementada e validada com PostgreSQL
 **Status geral:** Em desenvolvimento
 
 ## 1. Objetivo
@@ -17,7 +17,7 @@ O projeto tem como objetivo consolidar conhecimentos de desenvolvimento backend,
 - [x] ADR-003 — Integração assíncrona utilizando Apache Kafka.
 - [x] ADR-004 — Arquitetura interna tradicional em camadas.
 
-As quatro ADRs estão aprovadas na documentação. A infraestrutura local dos bancos prevista na ADR-002 foi implementada e validada. O `academico-service` iniciou com PostgreSQL e aplicou a primeira migração Flyway com sucesso. Mensageria e camadas de negócio permanecem planejadas.
+As quatro ADRs estão aprovadas na documentação. A infraestrutura local dos bancos prevista na ADR-002 foi implementada e validada. O `academico-service` iniciou com PostgreSQL e aplicou a primeira migração Flyway com sucesso. A entidade JPA `Coordenador` foi implementada e validada contra a tabela existente. Mensageria e demais camadas de negócio permanecem planejadas.
 
 ## 3. Tecnologias definidas
 
@@ -93,6 +93,9 @@ Esses registros não são critérios de conclusão da implementação.
 - [x] Aplicação da migração `V1__create_coordenadores.sql` via Flyway e inspeção da tabela, restrições e índice no PostgreSQL.
 - [x] Inicialização da aplicação com banco usando Java 21.0.13.0.3 e execução de `./mvnw clean verify` com sucesso.
 
+- [x] Implementação da entidade JPA `Coordenador` no pacote `entity` e remoção do import `UniqueConstraint` sem uso.
+- [x] Validação do mapeamento pelo Hibernate com PostgreSQL e `ddl-auto: validate`, acompanhada de `./mvnw clean verify` aprovado em Java 21.
+
 ### Infraestrutura PostgreSQL local
 
 - [x] Criação da pasta `infra/` e dos arquivos `compose.yml`, `.env.example`, `postgres/init/01-create-databases.sh` e `README.md`.
@@ -104,7 +107,7 @@ Esses registros não são critérios de conclusão da implementação.
 
 ## 6. Estado atual e evidências da auditoria
 
-A estrutura inicial, a infraestrutura PostgreSQL local e a inicialização do serviço com banco foram validadas. A V1 criou a tabela de coordenadores e foi registrada com sucesso no histórico Flyway. O ponto de continuidade é revisar e versionar a migração, os requisitos e este registro, mediante autorização, e planejar a implementação da persistência de coordenadores conforme a ADR-004.
+A estrutura inicial, a infraestrutura PostgreSQL local e a inicialização do serviço com banco foram validadas. A V1 criou a tabela de coordenadores e foi registrada com sucesso no histórico Flyway. A migração e os requisitos foram versionados no commit `7d3707b`. A entidade JPA também foi validada. O próximo passo de implementação é a persistência de coordenadores e seus testes de integração, conforme a ADR-004.
 
 ### Histórico de versionamento verificado em 11/11/2026
 
@@ -113,7 +116,7 @@ A estrutura inicial, a infraestrutura PostgreSQL local e a inicialização do se
 - `d332af2` — infraestrutura PostgreSQL com Docker Compose.
 - `a53d1a6` — configuração PostgreSQL e Flyway no serviço.
 
-Na consulta local, `main` e a referência `origin/main` apontavam para `a53d1a6`. O remoto não foi consultado nesta atualização. Na auditoria inicial, `services/` ainda não era rastreado; essa situação foi superada pelos commits acima. As alterações documentais desta atualização ainda aguardam versionamento.
+Na consulta local, `main` e a referência `origin/main` apontavam para `a53d1a6`. O remoto não foi consultado nesta atualização. Na auditoria inicial, `services/` ainda não era rastreado; essa situação foi superada pelos commits acima. Posteriormente, o commit `7d3707b` registrou a estrutura de persistência de coordenadores, incluindo a V1 final e os requisitos aprovados. A entidade e sua atualização de progresso compõem a entrega atual.
 
 ### Estrutura e dependências verificadas
 
@@ -126,8 +129,8 @@ Na consulta local, `main` e a referência `origin/main` apontavam para `a53d1a6`
 - Complementos: `flyway-database-postgresql`, driver `postgresql` em runtime e `lombok` opcional, configurado como annotation processor.
 - Testes: `spring-boot-starter-test` com escopo test. Versões das dependências gerenciadas pelo parent Spring Boot.
 - Plugins Spring Boot e Maven Compiler presentes. README próprio, regras de exclusão Git e atributos dos scripts presentes.
-- Não há entidades, controllers, services, repositories, DTOs, mappers, endpoints de negócio ou pacotes vazios representando camadas. A estrutura respeita a criação sob demanda prevista na ADR-004; as camadas de negócio ainda não foram implementadas.
-- A migração `src/main/resources/db/migration/V1__create_coordenadores.sql` está aplicada. Não há Kafka, Spring Security, MapStruct ou Testcontainers. As credenciais do serviço são referenciadas por variáveis de ambiente. O mapeamento JPA e as operações de persistência de coordenadores ainda não foram implementados.
+- A entidade `entity.Coordenador` está implementada. Controllers, services, repositories, DTOs, mappers e endpoints de negócio permanecem pendentes, com criação sob demanda conforme a ADR-004.
+- A migração `src/main/resources/db/migration/V1__create_coordenadores.sql` está aplicada. Não há Kafka, Spring Security, MapStruct ou Testcontainers. As credenciais do serviço são referenciadas por variáveis de ambiente. O mapeamento JPA foi validado na inicialização. Operações de gravação e leitura de coordenadores ainda aguardam implementação e testes.
 
 ### Testes executados em 10/11/2026
 
@@ -218,20 +221,38 @@ O Flyway registrou a aplicação bem-sucedida de uma migração, levando o schem
 
 As restrições e o índice foram inspecionados no catálogo do PostgreSQL. Não foram realizados testes de inserção de dados válidos ou inválidos nessa validação. O teste básico `contextLoads()` continua excluindo DataSource, Hibernate JPA, repositories e Flyway. A validação da migração ocorreu pela execução real da aplicação e pela inspeção do banco. A V1 aplicada deve ser preservada; futuras alterações de esquema deverão utilizar novas migrações versionadas.
 
+### Entidade JPA Coordenador e validação — 12/11/2026
+
+A entidade `com.gestaopedagogica.academico.entity.Coordenador` mapeia a tabela `coordenadores` com identificador `UUID`, nome/CPF/e-mail como `String` e data de cadastro como `Instant`. Comprimentos e nulabilidade correspondem à V1. O UUID é gerado pelo JPA com `GenerationType.UUID`, e a data é preenchida pelo Hibernate com `@CreationTimestamp`, usando o relógio da JVM. O construtor sem argumentos é protegido, com getters Lombok e construtor para nome, CPF e e-mail. O import `UniqueConstraint` sem uso foi removido. As restrições de CPF e o índice de e-mail permanecem sob responsabilidade da migração Flyway.
+
+| Verificação | Resultado |
+| --- | --- |
+| Java | 21.0.13.0.3 |
+| Comando | `./mvnw clean verify` |
+| Build | `BUILD SUCCESS` |
+| Testes | 1 executado, 0 falhas, 0 erros, 0 ignorados |
+| Empacotamento | JAR gerado e reempacotado |
+| Tempo da última execução | 42,427 s |
+| Banco | PostgreSQL 18.6, `academico_db`, conexão em `127.0.0.1:5434` |
+| Hibernate | `ddl-auto: validate` mantido, `EntityManagerFactory` inicializado e aplicação iniciada sem erro de mapeamento |
+| Flyway | V1 validada, schema atualizado, nenhuma migração pendente |
+
+A aplicação foi executada com porta HTTP temporária livre e encerrada após a validação. O teste básico continua excluindo persistência e Flyway. A validação real de inicialização complementou esse teste, sem executar inserções ou leituras de coordenadores. A geração de UUID e de data no momento da persistência ainda precisa ser exercitada pelos futuros testes de integração. Os avisos Maven HTTP 401 e Mockito/Byte Buddy persistem.
+
 ### Pendências e limitações identificadas
 
 - Investigar avisos Maven HTTP 401 ao consultar metadados dos repositórios `flyway-community-db-support` e `MavenFeed`. Não impediram o build; a origem da configuração desses repositórios não foi determinada nesta auditoria.
 - Avaliar os avisos de autoanexação do Mockito/Byte Buddy e carregamento dinâmico de agente no JDK utilizado. Não houve falha de teste.
-- Implementar e testar o mapeamento JPA e as operações de persistência de coordenadores. Testes de negócio e integração automatizada da aplicação ainda não existem.
+- Implementar e testar as operações de persistência de coordenadores sobre o mapeamento JPA validado. Testes de negócio e integração automatizada da aplicação ainda não existem.
 - Atualizar futuramente o estado descrito no README da raiz: ainda informa planejamento arquitetural, embora a estrutura inicial do serviço já exista. O README não foi modificado nesta tarefa.
-- Versionar a V1 final aplicada, as regras aprovadas em `docs/requisitos.md` e este registro mediante autorização. A versão da V1 previamente adicionada ao índice Git ainda precisa ser atualizada com o conteúdo final já validado.
+- A V1 final e os requisitos já estão versionados em `7d3707b`. A entrega atual reúne somente a entidade e este registro de progresso, com commit e push autorizados pelo desenvolvedor.
 
 ## 7. Próximas atividades
 
 ### Continuidade imediata
 
-1. Revisar a entrega e autorizar seu versionamento. Incluir `PROGRESSO.md`, `docs/requisitos.md` e o conteúdo final de `V1__create_coordenadores.sql`, atualizando a cópia da migração no índice Git.
-2. Planejar o mapeamento JPA e a persistência de coordenadores sobre a tabela existente, com testes de integração para restrições e unicidade de e-mail sem diferenciar maiúsculas/minúsculas.
+1. Concluir o versionamento autorizado da entidade `Coordenador` e deste registro de progresso.
+2. Implementar a camada repository e testes de integração da persistência de coordenadores, cobrindo gravação/leitura, geração de UUID/data, restrições e unicidade de e-mail sem diferenciar maiúsculas/minúsculas, em tarefa própria.
 3. Detalhar os contratos da futura API e implementar as regras aprovadas de normalização de CPF/e-mail e validação de CPF na aplicação. A exclusividade entre coordenador e diretor também deverá ser atendida na evolução do cadastro.
 4. Evoluir o cadastro em camadas e a integração prevista na ADR-003, conforme tarefas autorizadas e seus critérios de aceitação.
 
@@ -243,14 +264,14 @@ As restrições e o índice foram inspecionados no catálogo do PostgreSQL. Não
 
 ### Implementação ainda não iniciada
 
-- [ ] Implementar o mapeamento e testes de persistência de coordenadores; criar novas migrações conforme a evolução da modelagem.
+- [ ] Implementar repository e testes de persistência de coordenadores; criar novas migrações conforme a evolução da modelagem.
 - [ ] Definir e implementar a primeira funcionalidade acadêmica com testes automatizados, respeitando os requisitos e a ADR-004.
 - [ ] Criar o `identidade-service` e implementar contas, autenticação e autorização.
 - [ ] Detalhar os pontos pendentes da ADR-003 e implementar Kafka, Transactional Outbox, idempotência e tratamento de falhas.
 - [ ] Implementar as demais funcionalidades V1: cadastros, cursos, turmas, matrículas, auditoria, consultas e relatórios, conforme detalhamento dos requisitos.
 - [ ] Preparar a implantação com Kubernetes e detalhar a hospedagem do PostgreSQL.
 
-Os bancos independentes estão criados e validados na infraestrutura local. A conexão do `academico-service` e a V1 da tabela de coordenadores foram validadas. A estrutura de banco constitui uma entrega parcial do cadastro; as funcionalidades de negócio RF-001 a RF-035 ainda não estão concluídas. A normalização na aplicação, validação dos dígitos verificadores e exclusividade dos papéis estão documentadas e aguardam implementação. O evento `CoordenadorCadastrado` e a integração HTTP/Kafka permanecem planejados. V2 e V3 permanecem fora da implementação inicial.
+Os bancos independentes estão criados e validados na infraestrutura local. A conexão do `academico-service` e a V1 da tabela de coordenadores foram validadas. A estrutura de banco e a entidade JPA constituem uma entrega parcial do cadastro; as funcionalidades de negócio RF-001 a RF-035 ainda não estão concluídas. A normalização na aplicação, validação dos dígitos verificadores e exclusividade dos papéis estão documentadas e aguardam implementação. O evento `CoordenadorCadastrado` e a integração HTTP/Kafka permanecem planejados. V2 e V3 permanecem fora da implementação inicial.
 
 A ordem das atividades futuras poderá ser ajustada conforme as dependências técnicas. Esta atualização foi documental; os testes e a aplicação não foram executados novamente.
 
