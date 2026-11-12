@@ -214,13 +214,27 @@ Na V1, não haverá controle histórico de professores por turma.
 
 O diretor poderá cadastrar coordenadores com identificador único, nome, CPF, e-mail e data de cadastro.
 
+CPF e e-mail serão obrigatórios.
+
+O CPF será único dentro do cadastro de coordenadores e armazenado como string de exatamente 11 dígitos numéricos, preservando zeros iniciais.
+
+A API deverá aceitar CPF com ou sem máscara e normalizá-lo antes da persistência. A aplicação deverá validar os dígitos verificadores do CPF. O banco de dados deverá garantir o formato de 11 dígitos numéricos e a unicidade entre coordenadores.
+
+O e-mail será único entre coordenadores, independentemente de diferenças entre letras maiúsculas e minúsculas. A aplicação deverá remover espaços externos e armazenar o e-mail em minúsculas. O banco de dados deverá garantir a unicidade sem diferenciar maiúsculas e minúsculas.
+
 O cadastro de coordenador deverá permitir a criação de uma conta de acesso para esse profissional.
+
+Os dados cadastrais publicados no evento `CoordenadorCadastrado` deverão seguir a normalização definida acima, preservando os campos e tipos do contrato da ADR-003.
+
+Na V1, uma pessoa não poderá exercer simultaneamente os papéis de coordenador e diretor. Essa exclusividade deverá ser respeitada nos cadastros de ambos os profissionais e no provisionamento das contas de acesso.
 
 ### RF-017 — Cadastro de diretores
 
 O sistema deverá permitir a criação segura do primeiro diretor.
 
 Diretores poderão cadastrar outros diretores.
+
+O cadastro de diretores deverá respeitar a exclusividade entre os papéis de diretor e coordenador definida no RF-016.
 
 Deverá existir pelo menos um diretor ativo com acesso ao sistema.
 
